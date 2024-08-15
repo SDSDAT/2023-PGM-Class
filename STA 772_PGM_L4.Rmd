@@ -1,0 +1,186 @@
+---
+title: 'STA 772: Probabilistic Graphical Models (Factorization of Joint Probability Distribution (JPD))'
+author: "Professor O. E. Olubusoye"
+date: "`r Sys.Date()`"
+output: 
+      slidy_presentation: default
+---
+
+## Specify and Determine JPD
+
+- When you have two binary variables, each taking on two possible values (0 or 1), you can determine the Joint Probability Distribution (JPD) by specifying four probability values. Here's why:
+
+1. **Variable 1 (X)**:
+   - P(X = 0): The probability that the first binary variable, X, takes on the value 0.
+   - P(X = 1): The probability that X takes on the value 1.
+
+2. **Variable 2 (Y)**:
+   - P(Y = 0): The probability that the second binary variable, Y, takes on the value 0.
+   - P(Y = 1): The probability that Y takes on the value 1.
+
+## Specify and Determine JPD cont'd
+
+- To completely specify the JPD for two binary variables (X and Y), you need to provide probabilities for all possible combinations of these values. Since each variable has two possible values, there are a total of 2 x 2 = 4 possible combinations:
+
+1. P(X = 0, Y = 0): The joint probability that X is 0 and Y is 0.
+2. P(X = 0, Y = 1): The joint probability that X is 0 and Y is 1.
+3. P(X = 1, Y = 0): The joint probability that X is 1 and Y is 0.
+4. P(X = 1, Y = 1): The joint probability that X is 1 and Y is 1.
+
+By specifying these four probability values, you fully define the Joint Probability Distribution for the two binary variables, covering all possible outcomes.
+
+## Specify and Determine JPD cont'd
+
+- When dealing with 10 binary variables 
+
+   1. Each binary variable can take on two values (0 or 1), and with ten variables, you have 2^10 possible combinations.
+   
+  2. You need to specify 2^10 = 1,024 probability values to fully define the Joint Probability Distribution (JPD) for all possible combinations of variable values. 
+
+-   When dealing with 20 binary variables
+
+  1. Each binary variable can take on two values (0 or 1), and with twenty variables, you have 2^20 possible combinations.
+  
+  2. You need to specify 2^20 = 1,048,576 probability values to fully define the Joint Probability Distribution (JPD) for all possible combinations of variable values. 
+  
+## Implications of Large Variables 
+
+1. **Enormous Dimensionality**: Managing and computing probabilities for a JPD with 1,048,576 entries becomes highly challenging both in terms of memory usage and computational complexity. The JPD is extremely high-dimensional.
+
+2. **Parameter Estimation**: Estimating the probabilities for all possible combinations from data is extremely difficult and requires a massive amount of data to achieve reliable estimates. Data sparsity can exacerbate the problem.
+
+3. **Conditional Independence**: Identifying and modeling conditional independence relationships among 20 binary variables is exceptionally complex. The graphical structure of a Bayesian network or Markov random field becomes intricate and challenging to visualize.
+
+## Implications of Large Variables cont'd
+
+4. **Inference Complexity**: Performing inference tasks, such as calculating conditional probabilities or making predictions, is computationally intensive due to the vast number of probabilities involved. Exact inference becomes impractical.
+
+5. **Data Requirements**: To estimate parameters accurately for 20 binary variables, you would need an exceedingly large dataset, which can be prohibitively expensive or unattainable in many real-world scenarios.
+
+6. **Model Complexity**: The graphical model's complexity increases significantly, making it challenging to design, validate, and interpret. Overly complex models may lead to difficulties in understanding and maintaining the model.
+
+## Implications of Large Variables cont'd
+
+7. **Dimensionality Reduction**: Dimensionality reduction techniques, including feature selection and dimension reduction algorithms (e.g., Principal Component Analysis), may be essential to reduce the number of variables and simplify the modeling process.
+
+8. **Sparsity and Approximations**: Like in the case of 10 variables, it is likely that the JPD is sparse, meaning that many combinations have negligible probabilities. Identifying and exploiting this sparsity can reduce computational demands. Additionally, approximate inference techniques may be necessary for efficient probabilistic reasoning.
+
+9. **Parallel and Distributed Computing**: To handle the computational load, parallel and distributed computing may be required, especially for tasks like parameter estimation and inference.
+
+## The Medical Example
+
+We have six random variables such as:
+
+- Se: The season of the year
+- N: The nose is blocked
+- H: The patient has a headache
+- S: The patient regularly sneezes
+- C: The patient coughs
+- Cold: The patient has a cold
+
+Because each of the symptoms can exist in different degrees, it is natural to represent the variables as random variables. 
+
+## The Medical Example cont'd
+
+To create a directed graph representing the conditional dependencies described by the probability distribution \(P(Se, N, H, S, C, Cold) = P(Se)P(S | Se, Cold)P(N | Se, Cold)P(Cold)P(C | Cold)P(H | Cold)\), you can use the igraph package in R as follows:
+
+
+```{r, echo=TRUE}
+# Load the igraph library
+library(igraph)
+# We create a directed graph `g` using the `graph` function and # specify the dependencies by providing pairs of nodes 
+# representing the edges.
+# Create a directed graph
+g <- graph(c("Se", "S", "Se", "N", "Cold", "S", "Cold", "N", "Cold", "C", "Cold", "H"))
+# We set node names as labels for better visualization
+# Set node names
+V(g)$label <- V(g)$name
+# we use the `plot` function to visualize the graphical model 
+# with a circular layout.
+# Plot the graphical model
+plot(g, layout = layout.circle(g), vertex.label.color = "black", vertex.size = 30)
+```
+
+This graph represents the conditional dependencies between the random variables Se, N, H, S, C, and Cold based on the given probability distribution.
+
+## Factorization of JPD
+
+-   In probabilistic graphical models, the Factorization of the Joint Probability Distribution (JPD) is a crucial concept that allows us to represent a complex multivariate distribution as a product of simpler conditional distributions. 
+
+-   The medical scenario involves six random variables:
+
+  1. Se: The season of the year.
+  2. N: The nose is blocked.
+  3. H: The patient has a headache.
+  4. S: The patient regularly sneezes.
+  5. C: The patient coughs.
+  6. Cold: The patient has a cold.
+
+The JPD for these variables can be represented as follows:
+
+\[P(Se, N, H, S, C, Cold) = P(Se) \cdot P(N | Se, Cold) \cdot P(H | Cold) \cdot P(S | Se, Cold) \cdot P(C | Cold) \cdot P(Cold)\]
+
+## Factorization of JPD cont'd 
+
+Now, let's break down the factorization step by step:
+
+1. **Season Variable (Se)**:
+
+   - \(P(Se)\): This represents the probability distribution of the season of the year. It's a univariate distribution that captures the likelihood of different seasons occurring.
+
+2. **Blocked Nose (N)**:
+
+   - \(P(N | Se, Cold)\): This conditional probability represents the likelihood of having a blocked nose given the season (Se) and whether the patient has a cold (Cold). It accounts for the dependency of N on both Se and Cold.
+
+3. **Headache (H)**:
+
+   - \(P(H | Cold)\): This conditional probability represents the likelihood of having a headache given that the patient has a cold (Cold). It captures the dependency of H on Cold.
+
+## Factorization of JPD cont'd
+
+4. **Sneezing (S)**:
+
+   - \(P(S | Se, Cold)\): This conditional probability represents the likelihood of sneezing given both the season (Se) and the presence of a cold (Cold). It accounts for the dependency of S on both Se and Cold.
+
+5. **Cough (C)**:
+
+   - \(P(C | Cold)\): This conditional probability represents the likelihood of coughing given the presence of a cold (Cold). It captures the dependency of C on Cold.
+
+6. **Cold (Cold)**:
+
+   - \(P(Cold)\): This represents the probability distribution of having a cold. It's a univariate distribution that captures the likelihood of having a cold.
+
+## Factorization of JPD cont'd 
+
+-   In the original JPD, you would need to specify the probability values for all possible combinations of variable values. In our scenario, we have six random variables, each with two possible values (binary variables). Therefore, for the JPD, we would need to specify:
+
+\[2^6 = 64\]
+
+probability values to fully define the JPD for all possible combinations.
+
+## Factorization of JPD cont'd 
+
+Now, let's consider the factorization of the JPD:
+
+- \(P(Se)\) requires 2 probability values (one for each season).
+- \(P(N | Se, Cold)\) requires \(2 \times 2 \times 2 = 8\) probability values (two values for N given each combination of Se and Cold).
+- \(P(H | Cold)\) requires 2 probability values (one for each value of H given Cold).
+- \(P(S | Se, Cold)\) requires \(2 \times 2 \times 2 = 8\) probability values (two values for S given each combination of Se and Cold).
+- \(P(C | Cold)\) requires \(2 \times 2 = 4\) probability values (two values for C given Cold).
+- \(P(Cold)\) requires 2 probability values (one for each value of Cold).
+
+Now, let's sum up the number of probability values required for the factorization:
+
+\[2 + 8 + 2 + 8 + 4 + 2 = 26\]
+
+## Factorization of JPD cont'd 
+
+So, for the factorization of the JPD, you would need a total of 26 probability values to fully define the conditional probabilities and univariate distributions.
+
+Comparing the two:
+
+- The original JPD requires 64 probability values.
+- The factorization of the JPD requires 26 probability values.
+
+As you can see, the factorization significantly reduces the number of probability values that need to be specified to represent the same probabilistic relationships. This reduction in the number of parameters is a key advantage of using graphical models and factorization, especially when dealing with high-dimensional data or complex probabilistic models.
+
